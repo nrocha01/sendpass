@@ -39,9 +39,17 @@
             margin: 0 auto;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
+        /* Login Screen */
+        .login-container {
+            max-width: 500px;
+            margin: 10vh auto;
+        }
+
+        .login-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             animation: fadeIn 0.6s ease-out;
         }
 
@@ -57,9 +65,17 @@
             display: block;
         }
 
-        .subtitle {
+        .login-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            text-align: center;
             color: var(--text-secondary);
-            font-size: 1rem;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
 
         .admin-badge {
@@ -70,7 +86,20 @@
             border-radius: 20px;
             font-size: 0.875rem;
             font-weight: 700;
-            margin-top: 0.5rem;
+            margin: 0 auto 1.5rem;
+            display: block;
+            width: fit-content;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
         }
 
         .main-grid {
@@ -177,6 +206,17 @@
 
         .btn-secondary:hover {
             background: var(--border);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-red);
+            color: white;
         }
 
         .btn:active {
@@ -342,17 +382,6 @@
             font-size: 0.85rem;
         }
 
-        .btn-danger {
-            background: transparent;
-            color: var(--accent-red);
-            border: 1px solid var(--accent-red);
-        }
-
-        .btn-danger:hover {
-            background: var(--accent-red);
-            color: white;
-        }
-
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -394,96 +423,172 @@
             font-size: 0.875rem;
             margin-top: 0.5rem;
         }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--accent-red);
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
             <img src="https://algardata.com/wp-content/uploads/2023/02/logo-algardata.png" alt="Algardata" class="logo">
-            <p class="subtitle">Painel de Administração</p>
             <span class="admin-badge">🔒 ÁREA PRIVADA</span>
-        </header>
+            <h2 class="login-title">Autenticação Necessária</h2>
+            <p class="login-subtitle">Insira a senha de administrador</p>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalPasswords">0</div>
-                <div class="stat-label">Total de Senhas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="activePasswords">0</div>
-                <div class="stat-label">Senhas Ativas</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="usedPasswords">0</div>
-                <div class="stat-label">Senhas Utilizadas</div>
-            </div>
-        </div>
-
-        <div class="main-grid">
-            <div class="card">
-                <h2>➕ Criar Nova Senha</h2>
-                <form id="createPasswordForm">
-                    <div class="form-group">
-                        <label for="password">Senha</label>
-                        <div class="password-generator">
-                            <input type="text" id="password" placeholder="Insira ou gere uma senha" required>
-                            <button type="button" class="btn btn-secondary" onclick="generatePassword()">Gerar</button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="expiration">Validade</label>
-                        <select id="expiration">
-                            <option value="3600">1 hora</option>
-                            <option value="10800">3 horas</option>
-                            <option value="21600">6 horas</option>
-                            <option value="43200">12 horas</option>
-                            <option value="86400" selected>24 horas</option>
-                            <option value="259200">3 dias</option>
-                            <option value="604800">7 dias</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description">Descrição (opcional)</label>
-                        <input type="text" id="description" placeholder="Ex: Acesso ao servidor, Reset conta email...">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        Criar Link
-                    </button>
-                </form>
-
-                <div id="generatedLinkBox" class="hidden">
-                    <div class="generated-link">
-                        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">✓ Link e PIN Gerados!</h3>
-                        
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Link de Acesso</label>
-                            <div class="link-display">
-                                <div class="link-text" id="generatedLink"></div>
-                                <button class="copy-btn" onclick="copyLink()">Copiar</button>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">PIN de Autenticação</label>
-                            <div class="link-display">
-                                <div class="link-text" id="generatedPIN" style="font-size: 1.5rem; font-weight: 700; text-align: center; color: var(--accent-green);"></div>
-                                <button class="copy-btn" onclick="copyPIN()">Copiar</button>
-                            </div>
-                        </div>
-
-                        <div class="info-box">
-                            🔐 <strong>Importante:</strong> Envie o <strong>link</strong> e o <strong>PIN</strong> separadamente ao utilizador (ex: link por email, PIN por SMS/WhatsApp).
-                        </div>
-                    </div>
+            <div id="loginError" class="hidden">
+                <div class="alert alert-error">
+                    ❌ Senha incorreta. Tente novamente.
                 </div>
             </div>
 
-            <div class="card">
-                <h2>📋 Senhas Criadas</h2>
-                <div class="password-list" id="passwordList"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="adminPassword">Senha de Administrador</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Entrar
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--accent-orange); border-radius: 6px;">
+                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                    <strong style="color: var(--accent-orange); text-align: center; display: block;">
+  ⚠️ Use com moderação ⚠️
+</strong><br>
+                   
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden">
+        <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+
+        <div class="container">
+            <header>
+                <img src="https://algardata.com/wp-content/uploads/2023/02/logo-algardata.png" alt="Algardata" class="logo">
+                <p class="subtitle">Painel de Administração</p>
+                <span class="admin-badge">🔒 ÁREA PRIVADA</span>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPasswords">0</div>
+                    <div class="stat-label">Total de Senhas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activePasswords">0</div>
+                    <div class="stat-label">Senhas Ativas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="usedPasswords">0</div>
+                    <div class="stat-label">Senhas Utilizadas</div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <div class="card">
+                    <h2>➕ Criar Nova Senha</h2>
+                    <form id="createPasswordForm">
+                        <div class="form-group">
+                            <label for="password">Senha</label>
+                            <div class="password-generator">
+                                <input type="text" id="password" placeholder="Insira ou gere uma senha" required>
+                                <button type="button" class="btn btn-secondary" onclick="generatePassword()">Gerar</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expiration">Validade</label>
+                            <select id="expiration">
+                                <option value="3600">1 hora</option>
+                                <option value="10800">3 horas</option>
+                                <option value="21600">6 horas</option>
+                                <option value="43200">12 horas</option>
+                                <option value="86400" selected>24 horas</option>
+                                <option value="259200">3 dias</option>
+                                <option value="604800">7 dias</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Descrição (opcional)</label>
+                            <input type="text" id="description" placeholder="Ex: Acesso ao servidor, Reset conta email...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Criar Link
+                        </button>
+                    </form>
+
+                    <div id="generatedLinkBox" class="hidden">
+                        <div class="generated-link">
+                            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">✓ Link e PIN Gerados!</h3>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">Link de Acesso</label>
+                                <div class="link-display">
+                                    <div class="link-text" id="generatedLink"></div>
+                                    <button class="copy-btn" onclick="copyLink()">Copiar</button>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">PIN de Autenticação</label>
+                                <div class="link-display">
+                                    <div class="link-text" id="generatedPIN" style="font-size: 1.5rem; font-weight: 700; text-align: center; color: var(--accent-green);"></div>
+                                    <button class="copy-btn" onclick="copyPIN()">Copiar</button>
+                                </div>
+                            </div>
+
+                            <div class="info-box">
+                                🔐 <strong>Importante:</strong> Envie o <strong>link</strong> e o <strong>PIN</strong> separadamente ao utilizador (ex: link por email, PIN por SMS/WhatsApp).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Senhas Criadas</h2>
+                    <div class="password-list" id="passwordList"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -491,6 +596,61 @@
     <script>
         const STORAGE_KEY = 'passwords';
         const PUBLIC_URL = 'https://nrocha01.github.io/sendpass/';
+        const SESSION_KEY = 'adminSession';
+        
+        
+        const PASSWORD_HASH = '3591876e741aea87a098b14da62bd58727fb16eaf6d08e0915508b282c986a9a';
+
+        // Check if already logged in
+        function checkSession() {
+            const session = sessionStorage.getItem(SESSION_KEY);
+            if (session === 'authenticated') {
+                showAdminPanel();
+            }
+        }
+
+        // Hash password using SHA-256
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('adminPassword').value;
+            const hash = await hashPassword(password);
+            
+            if (hash === PASSWORD_HASH) {
+                sessionStorage.setItem(SESSION_KEY, 'authenticated');
+                showAdminPanel();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        });
+
+        // Show admin panel
+        function showAdminPanel() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            updatePasswordList();
+            updateStats();
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                sessionStorage.removeItem(SESSION_KEY);
+                location.reload();
+            }
+        }
 
         // Get passwords from storage
         function getPasswords() {
@@ -696,14 +856,16 @@
             document.getElementById('usedPasswords').textContent = used;
         }
 
-        // Initialize
-        updatePasswordList();
-        updateStats();
+        // Initialize - check if logged in
+        checkSession();
 
         // Auto-refresh every minute
         setInterval(() => {
-            updatePasswordList();
-            updateStats();
+            const session = sessionStorage.getItem(SESSION_KEY);
+            if (session === 'authenticated') {
+                updatePasswordList();
+                updateStats();
+            }
         }, 60000);
     </script>
 </body>
