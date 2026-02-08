@@ -281,18 +281,35 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <script>
-        const STORAGE_KEY = 'passwords';
+        // ⚠️ MESMA CONFIGURAÇÃO DO ADMIN
+        const firebaseConfig = {
+  apiKey: "AIzaSyBxRJvu-T8W5HZeSltHaAT5GZJS7n95o_Y",
+  authDomain: "senhas-10fc5.firebaseapp.com",
+  databaseURL: "https://senhas-10fc5-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "senhas-10fc5",
+  storageBucket: "senhas-10fc5.firebasestorage.app",
+  messagingSenderId: "854342224673",
+  appId: "1:854342224673:web:8ed8556625e84c5a284c60",
+  measurementId: "G-X768G2S02B"
+};
 
-        // Get passwords from storage
-        function getPasswords() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
-        }
-
-        // Save passwords to storage
-        function savePasswords(passwords) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(passwords));
+        // Initialize Firebase
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch (error) {
+            console.error('Erro ao inicializar Firebase:', error);
+            setTimeout(() => {
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('errorContent').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'Erro de configuração. Contacte o administrador.';
+            }, 800);
         }
 
         // Copy password from view
@@ -311,7 +328,7 @@
         // Check password access
         let currentPasswordEntry = null;
 
-        function checkPasswordAccess() {
+        async function checkPasswordAccess() {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
 
@@ -324,35 +341,44 @@
                 return;
             }
 
-            const passwords = getPasswords();
-            const passwordEntry = passwords.find(pwd => pwd.id === id);
+            try {
+                const snapshot = await db.ref('passwords/' + id).once('value');
+                const passwordEntry = snapshot.val();
 
-            setTimeout(() => {
-                document.getElementById('loadingState').classList.add('hidden');
+                setTimeout(() => {
+                    document.getElementById('loadingState').classList.add('hidden');
 
-                if (!passwordEntry) {
+                    if (!passwordEntry) {
+                        document.getElementById('errorContent').classList.remove('hidden');
+                        document.getElementById('errorMessage').textContent = 'Senha não encontrada.';
+                        return;
+                    }
+
+                    if (Date.now() > passwordEntry.expiresAt) {
+                        document.getElementById('errorContent').classList.remove('hidden');
+                        document.getElementById('errorMessage').textContent = 'Esta senha expirou.';
+                        return;
+                    }
+
+                    // Store current entry for PIN validation
+                    currentPasswordEntry = passwordEntry;
+
+                    // Show PIN validation form
+                    document.getElementById('pinValidation').classList.remove('hidden');
+                    document.getElementById('pinInput').focus();
+                }, 800);
+            } catch (error) {
+                console.error('Erro ao carregar senha:', error);
+                setTimeout(() => {
+                    document.getElementById('loadingState').classList.add('hidden');
                     document.getElementById('errorContent').classList.remove('hidden');
-                    document.getElementById('errorMessage').textContent = 'Senha não encontrada.';
-                    return;
-                }
-
-                if (Date.now() > passwordEntry.expiresAt) {
-                    document.getElementById('errorContent').classList.remove('hidden');
-                    document.getElementById('errorMessage').textContent = 'Esta senha expirou.';
-                    return;
-                }
-
-                // Store current entry for PIN validation
-                currentPasswordEntry = passwordEntry;
-
-                // Show PIN validation form
-                document.getElementById('pinValidation').classList.remove('hidden');
-                document.getElementById('pinInput').focus();
-            }, 800);
+                    document.getElementById('errorMessage').textContent = 'Erro ao carregar. Tente novamente.';
+                }, 800);
+            }
         }
 
         // Handle PIN form submission
-        document.getElementById('pinForm').addEventListener('submit', function(e) {
+        document.getElementById('pinForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const enteredPIN = document.getElementById('pinInput').value;
@@ -370,34 +396,36 @@
             }
 
             // PIN correct - mark as used and show password
-            const passwords = getPasswords();
-            const index = passwords.findIndex(pwd => pwd.id === currentPasswordEntry.id);
-            
-            if (index !== -1 && !passwords[index].used) {
-                passwords[index].used = true;
-                passwords[index].usedAt = Date.now();
-                savePasswords(passwords);
+            try {
+                if (!currentPasswordEntry.used) {
+                    await db.ref('passwords/' + currentPasswordEntry.id).update({
+                        used: true,
+                        usedAt: Date.now()
+                    });
+                }
+
+                // Hide PIN form
+                document.getElementById('pinValidation').classList.add('hidden');
+
+                // Display password
+                document.getElementById('passwordContent').classList.remove('hidden');
+                document.getElementById('displayPassword').textContent = currentPasswordEntry.password;
+                
+                if (currentPasswordEntry.description) {
+                    document.getElementById('displayDescription').textContent = currentPasswordEntry.description;
+                } else {
+                    document.getElementById('descriptionDisplay').style.display = 'none';
+                }
+
+                document.getElementById('displayCreated').textContent = 
+                    new Date(currentPasswordEntry.createdAt).toLocaleString('pt-PT');
+                
+                const expiresIn = Math.floor((currentPasswordEntry.expiresAt - Date.now()) / 1000 / 60);
+                document.getElementById('displayExpiry').textContent = 
+                    expiresIn > 60 ? Math.floor(expiresIn / 60) + ' horas' : expiresIn + ' minutos';
+            } catch (error) {
+                console.error('Erro ao marcar como usada:', error);
             }
-
-            // Hide PIN form
-            document.getElementById('pinValidation').classList.add('hidden');
-
-            // Display password
-            document.getElementById('passwordContent').classList.remove('hidden');
-            document.getElementById('displayPassword').textContent = currentPasswordEntry.password;
-            
-            if (currentPasswordEntry.description) {
-                document.getElementById('displayDescription').textContent = currentPasswordEntry.description;
-            } else {
-                document.getElementById('descriptionDisplay').style.display = 'none';
-            }
-
-            document.getElementById('displayCreated').textContent = 
-                new Date(currentPasswordEntry.createdAt).toLocaleString('pt-PT');
-            
-            const expiresIn = Math.floor((currentPasswordEntry.expiresAt - Date.now()) / 1000 / 60);
-            document.getElementById('displayExpiry').textContent = 
-                expiresIn > 60 ? Math.floor(expiresIn / 60) + ' horas' : expiresIn + ' minutos';
         });
 
         // Initialize
